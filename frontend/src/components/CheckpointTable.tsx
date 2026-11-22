@@ -1,6 +1,7 @@
 import { memo } from 'react'
-import { RISK_COLOR, RISK_LABEL, clock } from '../format'
+import { clock } from '../format'
 import type { RouteOption } from '../types'
+import { RiskTag } from './Signs'
 
 function CheckpointTable({ route }: { route: RouteOption }) {
   return (
@@ -23,15 +24,15 @@ function CheckpointTable({ route }: { route: RouteOption }) {
           <tbody>
             {route.checkpoints.map((c) => (
               <tr key={c.mile} title={c.reasons.join(', ')}>
-                <td>{Math.round(c.mile)}</td>
+                <td>
+                  <span className="milepost">{Math.round(c.mile)}</span>
+                </td>
                 <td>{clock(c.eta)}</td>
                 <td>{Math.round(c.wind_mph)} mph</td>
                 <td>{c.rain_in_hr.toFixed(2)}"</td>
                 <td>{c.snow_in_hr.toFixed(1)}"</td>
                 <td>
-                  <span className="pill" style={{ background: RISK_COLOR[c.risk] }}>
-                    {RISK_LABEL[c.risk]}
-                  </span>
+                  <RiskTag risk={c.risk} />
                 </td>
               </tr>
             ))}

@@ -6,6 +6,8 @@
   --panel: #ffffff;
   --accent: #1c5fd6;
   --sign: #f2b705;
+  --guide: #00693e;
+  --asphalt: #2b3036;
   --radius: 10px;
   font-family: 'Overpass', system-ui, -apple-system, 'Segoe UI', sans-serif;
   color: var(--ink);
@@ -48,25 +50,6 @@ input {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-}
-
-.brand h1 {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.brand h1::before {
-  content: '';
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  background: var(--ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M7 22h18M9 22l4-12h6l4 12' stroke='%23f2b705' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E") center / 22px no-repeat;
-  flex: none;
 }
 
 .gh {
@@ -211,18 +194,27 @@ input {
 }
 
 .primary {
-  height: 44px;
-  border: 0;
-  border-radius: 8px;
-  background: var(--ink);
-  color: #fff;
+  height: 46px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: var(--sign);
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .primary:hover:not(:disabled) {
-  background: #24384b;
+  background: #ffc61a;
+  box-shadow: 0 3px 0 var(--ink);
+  translate: 0 -2px;
+}
+
+.primary:active:not(:disabled) {
+  translate: 0 0;
+  box-shadow: none;
 }
 
 .primary:disabled {
@@ -244,15 +236,6 @@ input {
   gap: 8px;
 }
 
-.reason {
-  margin: 0;
-  font-size: 0.88rem;
-  line-height: 1.45;
-  padding: 10px 12px;
-  border-left: 3px solid var(--sign);
-  background: #fffbea;
-  border-radius: 0 8px 8px 0;
-}
 
 .route-card {
   text-align: left;
@@ -282,13 +265,6 @@ input {
   gap: 8px;
 }
 
-.swatch {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  background: var(--route);
-  flex: none;
-}
 
 .route-name {
   font-weight: 800;
@@ -299,17 +275,6 @@ input {
   font-size: 0.82rem;
 }
 
-.badge {
-  margin-left: auto;
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: var(--sign);
-  color: var(--ink);
-  padding: 3px 8px 2px;
-  border-radius: 4px;
-}
 
 .route-stats,
 .route-risk {
@@ -516,27 +481,49 @@ td {
 
 @media (max-width: 860px) {
   .heat-controls {
-    bottom: 12px;
-    padding: 8px 10px 4px;
+    bottom: 26px;
+    padding: 6px 10px 2px;
+    width: calc(100% - 20px);
+  }
+
+  .heat-top {
+    gap: 8px;
+  }
+
+  .play {
+    width: 28px;
+    height: 28px;
   }
 
   .heat-time {
     min-width: 0;
+    font-size: 0.74rem;
+    white-space: nowrap;
   }
 
   .segmented.small button {
-    padding: 5px 6px;
+    padding: 4px 6px;
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+
+  .heat-controls input[type='range'] {
+    margin: 6px 0 0;
+  }
+
+  .ticks {
+    display: none;
   }
 
   .app {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 52vh auto;
+    grid-template-rows: 60vh auto;
     height: auto;
   }
 
   .stage {
     grid-row: 1;
-    height: 52vh;
+    height: 60vh;
   }
 
   .panel {
@@ -544,4 +531,169 @@ td {
     border-right: 0;
     overflow: visible;
   }
+}
+
+/* highway-sign identity */
+.brand h1 {
+  margin: 0;
+  flex: 1;
+  background: var(--guide);
+  color: #fff;
+  border-radius: 9px;
+  padding: 9px 14px 8px;
+  box-shadow: inset 0 0 0 2px var(--guide), inset 0 0 0 4px #fff;
+  font-size: 1.28rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.005em;
+}
+
+.sign-top {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 3px;
+}
+
+.ticket {
+  position: relative;
+  background: #fffdf4;
+  border: 1px solid #e6dcb8;
+  border-radius: 4px;
+  padding: 10px 14px 12px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  /* perforated edge */
+  background-image: radial-gradient(circle at 6px 0, transparent 4px, #fffdf4 4.5px);
+  background-size: 12px 8px;
+  background-repeat: repeat-x;
+}
+
+.ticket-head {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Overpass Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8a7a44;
+  border-bottom: 1px dashed #d9cc9c;
+  padding: 4px 0 6px;
+  margin-bottom: 7px;
+}
+
+.ticket p {
+  margin: 0;
+}
+
+.shield {
+  flex: none;
+  filter: drop-shadow(0 1px 1px rgba(24, 36, 48, 0.25));
+}
+
+.route-card {
+  border-left: 5px solid var(--route);
+}
+
+.stamp {
+  margin-left: auto;
+  font-family: 'Overpass Mono', ui-monospace, monospace;
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--guide);
+  border: 2px solid var(--guide);
+  border-radius: 4px;
+  padding: 3px 7px 1px;
+  rotate: -4deg;
+}
+
+.milepost {
+  display: inline-block;
+  min-width: 34px;
+  text-align: center;
+  background: var(--guide);
+  color: #fff;
+  border-radius: 3px;
+  padding: 2px 5px 1px;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.diamond {
+  display: inline-block;
+  position: relative;
+  rotate: 45deg;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1.5px #fff, 0 0 0 2.5px rgba(24, 36, 48, 0.35);
+  flex: none;
+}
+
+.diamond i {
+  position: absolute;
+  inset: 22%;
+  border: 2px solid #fff;
+  border-radius: 50%;
+}
+
+.risk-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'Overpass', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.76rem;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.pill {
+  border-radius: 3px;
+}
+
+/* the slider is a stretch of road */
+.heat-controls input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--asphalt) linear-gradient(90deg, var(--sign) 0 55%, transparent 55% 100%) 0 50% / 18px 2px repeat-x;
+  cursor: pointer;
+}
+
+.heat-controls input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid var(--ink);
+  box-shadow: 0 2px 6px rgba(24, 36, 48, 0.35);
+}
+
+.heat-controls input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid var(--ink);
+}
+
+.heat-controls input[type='range']:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.play {
+  background: var(--sign);
+  color: var(--ink);
+  border: 2px solid var(--ink);
 }

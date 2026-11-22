@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import { RISK_COLOR, RISK_LABEL, RISK_LEVELS, ROUTE_COLOR, clock, duration, miles } from '../format'
 import type { Plan } from '../types'
+import { Shield } from './Signs'
 
 interface Props {
   plan: Plan
@@ -12,9 +13,15 @@ function RouteList({ plan, selected, onSelect }: Props) {
   const ordered = [...plan.routes].sort((a, b) => a.rank - b.rank)
   return (
     <section className="routes">
-      <p className="reason">
-        <strong>Why {plan.routes[plan.recommended].name}:</strong> {plan.reason}
-      </p>
+      <div className="ticket">
+        <div className="ticket-head">
+          <span>Dispatch note</span>
+          <span>{plan.routes.length} options checked</span>
+        </div>
+        <p>
+          <strong>Take {plan.routes[plan.recommended].name}.</strong> {plan.reason}
+        </p>
+      </div>
       {ordered.map((r) => {
         const total = r.distance_mi || 1
         const m = r.summary.miles_by_risk
@@ -26,10 +33,10 @@ function RouteList({ plan, selected, onSelect }: Props) {
             style={{ '--route': ROUTE_COLOR[r.id % ROUTE_COLOR.length] } as React.CSSProperties}
           >
             <div className="route-head">
-              <span className="swatch" />
+              <Shield letter={r.name.slice(-1)} color={ROUTE_COLOR[r.id % ROUTE_COLOR.length]} />
               <span className="route-name">{r.name}</span>
               <span className="via">{r.via}</span>
-              {r.recommended && <span className="badge">Recommended</span>}
+              {r.recommended && <span className="stamp">Recommended</span>}
             </div>
             <div className="route-stats">
               <span>{miles(r.distance_mi)}</span>

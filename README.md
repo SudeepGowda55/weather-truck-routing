@@ -2,6 +2,8 @@
 
 React + Django app that helps a truck driver pick the safest of three routes, based on the weather the truck will actually drive into, the load it's carrying, and travel time.
 
+**Live:** https://weather-truck-routing-theta.vercel.app
+
 ![screenshot](docs/screenshot.png)
 
 ## What it does
