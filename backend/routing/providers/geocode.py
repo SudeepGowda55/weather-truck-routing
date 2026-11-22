@@ -13,7 +13,8 @@ def search(query, limit=6):
     if cached is not None:
         return cached
 
-    res = requests.get(settings.PHOTON_URL, params={"q": query, "limit": limit, "lang": "en"}, timeout=10)
+    res = requests.get(settings.PHOTON_URL, params={"q": query, "limit": limit, "lang": "en"},
+                       headers=settings.HTTP_HEADERS, timeout=10)
     res.raise_for_status()
 
     places = {}

@@ -38,6 +38,9 @@ VALHALLA_URL = os.environ.get("VALHALLA_URL", "https://valhalla1.openstreetmap.d
 OPEN_METEO_URL = os.environ.get("OPEN_METEO_URL", "https://api.open-meteo.com/v1/forecast")
 PHOTON_URL = os.environ.get("PHOTON_URL", "https://photon.komoot.io/api/")
 
+# OSM-based services reject the default python-requests agent
+HTTP_HEADERS = {"User-Agent": "weather-truck-routing/0.1"}
+
 LOGGING = {
     "version": 1,
     "handlers": {"console": {"class": "logging.StreamHandler"}},

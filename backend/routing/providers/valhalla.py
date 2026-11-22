@@ -38,7 +38,7 @@ def request_trips(locations, load_lb, alternates=0):
         "alternates": alternates,
     }
     try:
-        res = requests.post(settings.VALHALLA_URL, json=body, timeout=25)
+        res = requests.post(settings.VALHALLA_URL, json=body, headers=settings.HTTP_HEADERS, timeout=25)
     except requests.RequestException as exc:
         raise RoutingError(f"Routing service unreachable: {exc}") from exc
 
@@ -49,7 +49,7 @@ def request_trips(locations, load_lb, alternates=0):
 
 
 def stitch(trips, via):
-    points, seconds = [], []
+    points, seconds, joins = [], [], []
     elapsed = 0.0
     for trip in trips:
         for leg in trip["legs"]:
@@ -68,8 +68,37 @@ def stitch(trips, via):
             seconds.extend(elapsed + s for s in leg_seconds[skip:])
             elapsed = seconds[-1]
 
-    distance = sum(t["summary"]["length"] for t in trips)
-    return Route(points, cumulative_miles(points), seconds, distance, elapsed, via)
+        joins.append(len(points) - 1)
+
+    for j in reversed(joins[:-1]):
+        points, seconds = trim_spur(points, seconds, j)
+
+    miles = cumulative_miles(points)
+    return Route(points, miles, seconds, miles[-1], seconds[-1], via)
+
+
+def trim_spur(points, seconds, j, tolerance_mi=0.06, reach_mi=15):
+    # a hop that ends off the main road drives in and back out again; cut the out-and-back
+    miles = cumulative_miles(points)
+    lo = j
+    while lo > 0 and miles[j] - miles[lo - 1] <= reach_mi:
+        lo -= 1
+    hi = j
+    while hi < len(points) - 1 and miles[hi + 1] - miles[j] <= reach_mi:
+        hi += 1
+    cut = None
+    for a in range(lo, j):
+        for b in range(hi, j, -1):
+            if haversine_mi(points[a], points[b]) < tolerance_mi:
+                cut = (a, b)
+                break
+        if cut:
+            break
+    if not cut:
+        return points, seconds
+    a, b = cut
+    saved = seconds[b] - seconds[a]
+    return points[:a + 1] + points[b + 1:], seconds[:a + 1] + [t - saved for t in seconds[b + 1:]]
 
 
 def compass(deg):

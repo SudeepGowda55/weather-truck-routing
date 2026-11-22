@@ -82,7 +82,7 @@ def forecast(points, start, hours, cell=0.1):
             "end_hour": end.strftime("%Y-%m-%dT%H:%M"),
         }
         try:
-            res = requests.get(settings.OPEN_METEO_URL, params=params, timeout=25)
+            res = requests.get(settings.OPEN_METEO_URL, params=params, headers=settings.HTTP_HEADERS, timeout=25)
         except requests.RequestException as exc:
             raise WeatherError(f"Weather service unreachable: {exc}") from exc
         if res.status_code == 429:
