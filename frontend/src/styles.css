@@ -357,7 +357,7 @@ input {
 
 .table-wrap {
   max-height: 300px;
-  overflow-y: auto;
+  overflow: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
 }
@@ -448,9 +448,88 @@ td {
   max-width: 280px;
 }
 
+/* heatmap controls */
+.heat-controls {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  translate: -50% 0;
+  width: min(620px, calc(100% - 32px));
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(24, 36, 48, 0.16);
+  padding: 10px 14px 6px;
+}
+
+.heat-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.play {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  flex: none;
+}
+
+.heat-time {
+  font-family: 'Overpass Mono', ui-monospace, monospace;
+  font-size: 0.86rem;
+  min-width: 150px;
+}
+
+.heat-time span {
+  color: var(--muted);
+}
+
+.segmented.small {
+  margin-left: auto;
+  grid-template-columns: repeat(3, auto);
+}
+
+.segmented.small button {
+  padding: 5px 10px;
+  font-size: 0.76rem;
+}
+
+.heat-controls input[type='range'] {
+  width: 100%;
+  margin: 10px 0 2px;
+  accent-color: var(--ink);
+}
+
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Overpass Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
 @media (max-width: 860px) {
+  .heat-controls {
+    bottom: 12px;
+    padding: 8px 10px 4px;
+  }
+
+  .heat-time {
+    min-width: 0;
+  }
+
+  .segmented.small button {
+    padding: 5px 6px;
+  }
+
   .app {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 52vh auto;
     height: auto;
   }

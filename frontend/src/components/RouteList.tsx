@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { RISK_COLOR, RISK_LABEL, RISK_LEVELS, ROUTE_COLOR, clock, duration, miles } from '../format'
 import type { Plan } from '../types'
 
@@ -7,7 +8,7 @@ interface Props {
   onSelect: (id: number) => void
 }
 
-export default function RouteList({ plan, selected, onSelect }: Props) {
+function RouteList({ plan, selected, onSelect }: Props) {
   const ordered = [...plan.routes].sort((a, b) => a.rank - b.rank)
   return (
     <section className="routes">
@@ -52,3 +53,5 @@ export default function RouteList({ plan, selected, onSelect }: Props) {
     </section>
   )
 }
+
+export default memo(RouteList)

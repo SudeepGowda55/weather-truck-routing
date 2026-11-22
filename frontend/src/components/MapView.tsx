@@ -3,7 +3,8 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { useEffect, useRef, useState } from 'react'
 import { RISK_COLOR, RISK_LABEL, ROUTE_COLOR, clock } from '../format'
 import { bounds, cumulative, slice } from '../geo'
-import type { Plan } from '../types'
+import type { Plan, RouteOption } from '../types'
+import type { Metric } from './HeatmapControls'
 
 const STYLE = 'https://tiles.openfreemap.org/styles/positron'
 const EMPTY = { type: 'FeatureCollection' as const, features: [] }
@@ -12,9 +13,44 @@ interface Props {
   plan: Plan | null
   selected: number
   onSelect: (id: number) => void
+  hour: number
+  metric: Metric
 }
 
-export default function MapView({ plan, selected, onSelect }: Props) {
+// colour of each heat point for the hour on the slider. Each point keeps every hour as a property,
+// so moving the slider only swaps this expression and nothing is re-uploaded.
+// Points are coloured by their own value (not summed like a density heatmap), so calm stays green.
+function heatColor(metric: Metric, hour: number) {
+  if (metric === 'wind') {
+    return ['interpolate', ['linear'], ['get', `w${hour}`], 0, '#d9f0e3', 12, '#7cc7a0', 24, '#2f9e44', 25, '#e8b923', 35, '#f07c13', 45, '#d6336c', 55, '#5c1a8a']
+  }
+  if (metric === 'precip') {
+    return ['interpolate', ['linear'], ['get', `p${hour}`], 0, '#e8eef3', 0.01, '#bfe3f0', 0.1, '#38a3c9', 0.25, '#1c5fd6', 0.5, '#3730a3', 1, '#5c1a8a']
+  }
+  return ['match', ['get', `r${hour}`], 0, '#2f9e44', 1, '#e8b923', 2, '#f07c13', 3, '#d6336c', '#5c1a8a']
+}
+
+function heatOpacity(metric: Metric, hour: number) {
+  // dry cells fade out in the precipitation view so the rain stands out
+  if (metric === 'precip') return ['interpolate', ['linear'], ['get', `p${hour}`], 0, 0.12, 0.02, 0.5, 0.2, 0.7]
+  return 0.38
+}
+
+// where the truck is on the route at a given time, from the checkpoint ETAs
+function truckAt(route: RouteOption, when: number): [number, number] | null {
+  const cps = route.checkpoints
+  if (!cps.length) return null
+  const times = cps.map((c) => Date.parse(c.eta))
+  if (when <= times[0]) return [cps[0].lon, cps[0].lat]
+  if (when >= times[times.length - 1]) return null
+  const i = times.findIndex((t) => t > when)
+  const a = cps[i - 1]
+  const b = cps[i]
+  const t = (when - times[i - 1]) / (times[i] - times[i - 1])
+  return [a.lon + (b.lon - a.lon) * t, a.lat + (b.lat - a.lat) * t]
+}
+
+export default function MapView({ plan, selected, onSelect, hour, metric }: Props) {
   const container = useRef<HTMLDivElement>(null)
   const map = useRef<MLMap | null>(null)
   const [ready, setReady] = useState(false)
@@ -33,9 +69,23 @@ export default function MapView({ plan, selected, onSelect }: Props) {
     map.current = m
 
     m.on('load', () => {
+      m.addSource('heat', { type: 'geojson', data: EMPTY })
+      m.addSource('truck', { type: 'geojson', data: EMPTY })
       m.addSource('routes', { type: 'geojson', data: EMPTY })
       m.addSource('segments', { type: 'geojson', data: EMPTY })
       m.addSource('checkpoints', { type: 'geojson', data: EMPTY })
+
+      m.addLayer({
+        id: 'heat',
+        type: 'circle',
+        source: 'heat',
+        paint: {
+          'circle-color': heatColor('risk', 0) as never,
+          'circle-opacity': heatOpacity('risk', 0) as never,
+          'circle-blur': 1,
+          'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 3, 10, 6, 80, 9, 640],
+        },
+      })
 
       m.addLayer({
         id: 'routes-casing',
@@ -72,6 +122,13 @@ export default function MapView({ plan, selected, onSelect }: Props) {
           'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 1.5,
         },
+      })
+
+      m.addLayer({
+        id: 'truck',
+        type: 'circle',
+        source: 'truck',
+        paint: { 'circle-radius': 8, 'circle-color': '#182430', 'circle-stroke-color': '#f2b705', 'circle-stroke-width': 3 },
       })
 
       const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 10, className: 'cp-popup' })
@@ -164,6 +221,42 @@ export default function MapView({ plan, selected, onSelect }: Props) {
     ;(m.getSource('segments') as GeoJSONSource).setData({ type: 'FeatureCollection', features: segments })
     ;(m.getSource('checkpoints') as GeoJSONSource).setData({ type: 'FeatureCollection', features: points })
   }, [plan, selected, ready])
+
+  useEffect(() => {
+    const m = map.current
+    if (!m || !ready) return
+    const heat = plan?.heatmap
+    ;(m.getSource('heat') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: (heat?.points ?? []).map((pt, i) => {
+        const props: Record<string, number> = {}
+        heat!.hours.forEach((_, h) => {
+          props[`r${h}`] = heat!.risk[h][i]
+          props[`w${h}`] = heat!.wind_mph[h][i]
+          props[`p${h}`] = heat!.precip_in_hr[h][i]
+        })
+        return { type: 'Feature', properties: props, geometry: { type: 'Point', coordinates: pt } }
+      }),
+    })
+  }, [plan, ready])
+
+  useEffect(() => {
+    const m = map.current
+    if (!m || !ready) return
+    m.setPaintProperty('heat', 'circle-color', heatColor(metric, hour))
+    m.setPaintProperty('heat', 'circle-opacity', heatOpacity(metric, hour))
+  }, [hour, metric, ready])
+
+  useEffect(() => {
+    const m = map.current
+    if (!m || !ready) return
+    const route = plan?.routes.find((r) => r.id === selected)
+    const at = route && plan ? truckAt(route, Date.parse(plan.heatmap.hours[hour])) : null
+    ;(m.getSource('truck') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: at ? [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: at } }] : [],
+    })
+  }, [plan, selected, hour, ready])
 
   return <div ref={container} className="map" aria-label="Map of route options and weather checkpoints" />
 }

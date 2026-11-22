@@ -1,7 +1,8 @@
+import { memo } from 'react'
 import { RISK_COLOR, RISK_LABEL, clock } from '../format'
 import type { RouteOption } from '../types'
 
-export default function CheckpointTable({ route }: { route: RouteOption }) {
+function CheckpointTable({ route }: { route: RouteOption }) {
   return (
     <section className="checkpoints">
       <h3>
@@ -40,3 +41,5 @@ export default function CheckpointTable({ route }: { route: RouteOption }) {
     </section>
   )
 }
+
+export default memo(CheckpointTable)

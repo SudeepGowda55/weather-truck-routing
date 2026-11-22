@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { planTrip } from './api'
 import CheckpointTable from './components/CheckpointTable'
+import HeatmapControls, { type Metric } from './components/HeatmapControls'
 import MapView from './components/MapView'
 import RouteList from './components/RouteList'
 import TripForm from './components/TripForm'
@@ -12,7 +13,11 @@ export default function App() {
   const [selected, setSelected] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [hour, setHour] = useState(0)
+  const [metric, setMetric] = useState<Metric>('risk')
+  const [playing, setPlaying] = useState(false)
   const inflight = useRef<AbortController | null>(null)
+  const changeHour = useCallback((h: number) => setHour(h), [])
 
   async function run(trip: TripRequest) {
     inflight.current?.abort()
@@ -24,6 +29,8 @@ export default function App() {
       const result = await planTrip(trip, ctrl.signal)
       setPlan(result)
       setSelected(result.recommended)
+      setHour(0)
+      setPlaying(false)
     } catch (e) {
       if ((e as Error).name !== 'AbortError') setError((e as Error).message)
     } finally {
@@ -58,7 +65,18 @@ export default function App() {
         </footer>
       </aside>
       <main className="stage">
-        <MapView plan={plan} selected={selected} onSelect={setSelected} />
+        <MapView plan={plan} selected={selected} onSelect={setSelected} hour={hour} metric={metric} />
+        {plan && (
+          <HeatmapControls
+            hours={plan.heatmap.hours}
+            hour={hour}
+            onHour={changeHour}
+            metric={metric}
+            onMetric={setMetric}
+            playing={playing}
+            onPlaying={setPlaying}
+          />
+        )}
         {loading && <div className="loading">Routing three options and pulling forecasts…</div>}
       </main>
     </div>
